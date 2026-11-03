@@ -8,12 +8,45 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - trivy_cache:/root/.cache/trivy
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks: [lab]
 
+  sonarqube-db:
+    image: postgres:16-alpine
+    container_name: sonarqube-db
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonar_db:/var/lib/postgresql/data
+    networks: [lab]
+
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    depends_on: [sonarqube-db]
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+      - sonar_logs:/opt/sonarqube/logs
+    networks: [lab]
+
 volumes:
   jenkins_home:
+  trivy_cache:
+  sonar_db:
+  sonar_data:
+  sonar_extensions:
+  sonar_logs:
 
 networks:
   lab:

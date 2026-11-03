@@ -11,3 +11,14 @@ _Typed the folder name somarqube instead of sonarqube. Rename with mv. Check fol
 - git push returned HTTP 403 because the fine-grained token had Repository creation instead of Contents (Read and write). Search for 'contents' when adding permissions.
 - First git push failed with 'Invalid username or token': GitHub rejects account passwords, a fine-grained token is required. Create it under Settings > Developer settings.
 - Phase 1 break-it: changed an expected string in GreetingServiceTest. Build failed at the Unit Tests stage, not Build, because Build runs with -DskipTests. Failure message names test, file and line. Fixed with git revert.
+- SonarQube on WSL2 needs: sudo sysctl -w vm.max_map_count=262144 . It resets when WSL restarts, so re-run it after a reboot or wsl --shutdown.
+- Correction: on this WSL2 install vm.max_map_count was already 262144 by default, so no change was needed. Only re-check it if SonarQube fails with a max virtual memory areas error.
+- SonarQube Community Build v26.10.0 (image sonarqube:community) started fine on WSL2. First login admin/admin, forced password change.
+- SonarQube Community Build v26.10.0 (image sonarqube:community) started fine on WSL2. First login admin/admin, forced password change.
+- Phase 2 break-it attempt 1: deleting tests did NOT fail the Sonar gate. The gate judges new code only and no production lines changed ('not enough lines to compute coverage'). To fail it, add new untested production code.
+- Phase 2 break-it attempt 2: adding untested farewell() dropped overall coverage 86.7% to 50.0% but the default Sonar way gate still passed (new-code coverage). Switched to a custom gate on overall coverage.
+- Sonar gate failure line in the Jenkins log: 'QUALITY GATE STATUS: FAILED - View details on http://sonarqube:9000/...'. That hostname only resolves inside Docker; use localhost:9000 in the browser.
+- First Trivy scan downloaded two DBs: vulnerability DB (~40s) and Java DB (~2.5 min), both from mirror.gcr.io, no rate-limit problem. Clean baseline: 0 vulns in ubuntu 22.04 (143 pkgs) and 0 in app.jar. Java DB is cached for 3 days.
+- Second Trivy scan reused the cached DBs (no download, finished in seconds). trivy_cache volume works.
+- Phase 2 break-it: added log4j-core 2.14.1. Trivy flagged 3 findings in app.jar (CVE-2021-44228 CRITICAL, CVE-2021-45046 CRITICAL, CVE-2021-45105 HIGH) and the Trivy Scan stage failed. Fixed versions: 2.17.0 or later. Base ubuntu layer stayed at 0.
+- Phase 2 done. Revert of the log4j commit gave a clean Trivy scan again (0 and 0). Stages 5, 6, 7 verified, including a failing quality gate and a failing vulnerability scan.
