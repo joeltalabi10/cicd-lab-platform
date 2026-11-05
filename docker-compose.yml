@@ -40,6 +40,16 @@ services:
       - sonar_logs:/opt/sonarqube/logs
     networks: [lab]
 
+  registry:
+    image: registry:2
+    container_name: kind-registry
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5001:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+    networks: [lab]
+
 volumes:
   jenkins_home:
   trivy_cache:
@@ -47,6 +57,7 @@ volumes:
   sonar_data:
   sonar_extensions:
   sonar_logs:
+  registry_data:
 
 networks:
   lab:

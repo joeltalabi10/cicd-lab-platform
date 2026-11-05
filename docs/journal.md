@@ -14,7 +14,6 @@ _Typed the folder name somarqube instead of sonarqube. Rename with mv. Check fol
 - SonarQube on WSL2 needs: sudo sysctl -w vm.max_map_count=262144 . It resets when WSL restarts, so re-run it after a reboot or wsl --shutdown.
 - Correction: on this WSL2 install vm.max_map_count was already 262144 by default, so no change was needed. Only re-check it if SonarQube fails with a max virtual memory areas error.
 - SonarQube Community Build v26.10.0 (image sonarqube:community) started fine on WSL2. First login admin/admin, forced password change.
-- SonarQube Community Build v26.10.0 (image sonarqube:community) started fine on WSL2. First login admin/admin, forced password change.
 - Phase 2 break-it attempt 1: deleting tests did NOT fail the Sonar gate. The gate judges new code only and no production lines changed ('not enough lines to compute coverage'). To fail it, add new untested production code.
 - Phase 2 break-it attempt 2: adding untested farewell() dropped overall coverage 86.7% to 50.0% but the default Sonar way gate still passed (new-code coverage). Switched to a custom gate on overall coverage.
 - Sonar gate failure line in the Jenkins log: 'QUALITY GATE STATUS: FAILED - View details on http://sonarqube:9000/...'. That hostname only resolves inside Docker; use localhost:9000 in the browser.
@@ -22,3 +21,8 @@ _Typed the folder name somarqube instead of sonarqube. Rename with mv. Check fol
 - Second Trivy scan reused the cached DBs (no download, finished in seconds). trivy_cache volume works.
 - Phase 2 break-it: added log4j-core 2.14.1. Trivy flagged 3 findings in app.jar (CVE-2021-44228 CRITICAL, CVE-2021-45046 CRITICAL, CVE-2021-45105 HIGH) and the Trivy Scan stage failed. Fixed versions: 2.17.0 or later. Base ubuntu layer stayed at 0.
 - Phase 2 done. Revert of the log4j commit gave a clean Trivy scan again (0 and 0). Stages 5, 6, 7 verified, including a failing quality gate and a failing vulnerability scan.
+- After updating and restarting WSL, all containers were stopped. Recovery: start Docker Desktop, check sysctl vm.max_map_count, run docker compose up -d in cicd-lab-platform, wait for SonarQube status UP. Data survives in volumes.
+- Stage 8 verified: registry catalog lists demo-app and tags/list shows the commit SHA tag. Registry is registry:2 on localhost:5001, replacing ECR.
+- gitops repo: base Deployment, Service and dev overlay (Kustomize) pushed. Overlay tag starts as 'bootstrap' and Jenkins will overwrite it.
+- Stage 9: Jenkins clones the gitops repo with credential github-pat, runs kustomize edit set image, and pushes a commit. After a build, run git pull in the local gitops folder before editing it.
+- Stage 9 verified after creating the github-pat credential: Jenkins cloned the gitops repo, ran kustomize edit set image, committed 'demo-app: deploy <sha>' and pushed (abe90a4..0501f42). Image tag in the registry and newTag in the gitops overlay now match.
