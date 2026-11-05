@@ -32,3 +32,9 @@ _Typed the folder name somarqube instead of sonarqube. Rename with mv. Check fol
 - All 7 Argo CD pods Running after ~5 min. UI via kubectl port-forward svc/argocd-server 8443:443 (self-signed cert warning is expected). Initial admin password is in secret argocd-initial-admin-secret.
 - Argo CD UI reached, version v3.6.1, Applications page empty at first login.
 - Stage 10 verified: Application demo-app Synced/Healthy, 2 pods Running in namespace demo, curl localhost:8090/actuator/info returns version 65b7f02 (the commit SHA Jenkins built).
+- Stage 11 verified: Post-Deploy Validation polls /actuator/info until the new SHA is live, then checks health and one request. Build 19 fully green; Argo CD rolled demo-app to bf6ff6d via a rolling update (two ReplicaSets visible in the tree). Set argocd-cm timeout.reconciliation=30s to speed up syncs.
+- kubectl rollout history shows revisions 2 and 3 only: a rollback reuses the old ReplicaSet and renumbers it as the newest revision. CHANGE-CAUSE is <none>; the real audit trail is the gitops git log.
+- Self-heal verified: deleting the demo-app Deployment by hand made Argo CD recreate it from Git within about a minute (new Deployment shows rev:1, Service untouched). Argo CD stayed Synced to the revert commit 5a104fe.
+- Event text for a missing tag: 'Failed to pull image localhost:5001/demo-app:doesnotexist: rpc error: code = NotFound'. NotFound means the registry answered and the tag does not exist (a registry outage would give a connection error instead).
+- Pushing to the gitops repo does NOT trigger Jenkins (Jenkins only polls the app repo). Argo CD reacts to gitops commits. A later app build will overwrite a manual gitops rollback.
+- Bad-tag exercise resolved with git revert (24959d0): failing pod removed, 2 original pods untouched for 14 min, no user-visible outage.
