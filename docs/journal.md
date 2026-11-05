@@ -29,3 +29,6 @@ _Typed the folder name somarqube instead of sonarqube. Rename with mv. Check fol
 - Raised WSL memory to 12GB via C:\Users\<user>\.wslconfig ([wsl2] memory=12GB processors=6), then wsl --shutdown. free -h now shows 11Gi. Needed for kind + monitoring in Phases 4-5.
 - kind cluster 'lab' created (kindest/node v1.37.0, 1 control-plane + 1 worker, host port 8090 -> NodePort 30080). Registry linked via containerd certs.d hosts.toml for localhost:5001 and docker network connect kind kind-registry.
 - Pull test: a pod created from localhost:5001/demo-app:65b7f02 reached Running in 8s, so the kind nodes can pull from the local registry. (First attempt of the test never ran because the create command was missed in the paste.)
+- All 7 Argo CD pods Running after ~5 min. UI via kubectl port-forward svc/argocd-server 8443:443 (self-signed cert warning is expected). Initial admin password is in secret argocd-initial-admin-secret.
+- Argo CD UI reached, version v3.6.1, Applications page empty at first login.
+- Stage 10 verified: Application demo-app Synced/Healthy, 2 pods Running in namespace demo, curl localhost:8090/actuator/info returns version 65b7f02 (the commit SHA Jenkins built).
