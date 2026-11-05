@@ -26,3 +26,6 @@ _Typed the folder name somarqube instead of sonarqube. Rename with mv. Check fol
 - gitops repo: base Deployment, Service and dev overlay (Kustomize) pushed. Overlay tag starts as 'bootstrap' and Jenkins will overwrite it.
 - Stage 9: Jenkins clones the gitops repo with credential github-pat, runs kustomize edit set image, and pushes a commit. After a build, run git pull in the local gitops folder before editing it.
 - Stage 9 verified after creating the github-pat credential: Jenkins cloned the gitops repo, ran kustomize edit set image, committed 'demo-app: deploy <sha>' and pushed (abe90a4..0501f42). Image tag in the registry and newTag in the gitops overlay now match.
+- Raised WSL memory to 12GB via C:\Users\<user>\.wslconfig ([wsl2] memory=12GB processors=6), then wsl --shutdown. free -h now shows 11Gi. Needed for kind + monitoring in Phases 4-5.
+- kind cluster 'lab' created (kindest/node v1.37.0, 1 control-plane + 1 worker, host port 8090 -> NodePort 30080). Registry linked via containerd certs.d hosts.toml for localhost:5001 and docker network connect kind kind-registry.
+- Pull test: a pod created from localhost:5001/demo-app:65b7f02 reached Running in 8s, so the kind nodes can pull from the local registry. (First attempt of the test never ran because the create command was missed in the paste.)
